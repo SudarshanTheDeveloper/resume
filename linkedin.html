@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Project - LinkedIn</title>
+
+  <link rel="shortcut icon" href="../linked in/images/linkedin-logo-png-2026.png" type="image/x-icon">
+  <!-- Applying reset on standard css -->
+  <link rel="stylesheet" href="reset.css">
+
+  <!-- Importing Ropa Sans font -->
+  <link href="https://fonts.googleapis.com/css2?family=Ropa+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rambla:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- CSS import -->
+  <link rel="stylesheet" href="linkedin.css">
+</head>
+<body>
+
+  <!-- Page's Header, only navigation bar is here -->
+  <header>
+    <nav>
+      <div id="nav-left">
+        <!-- linkedin home logo -->
+        <div id="home-logo">
+          <a href="">
+            <img src="images/linkedin-logo-png-2026.png" alt="Home Logo">
+          </a>
+        </div>
+        <!-- searchbox -->
+        <form class="search-box">
+            <label for="search"><img src="../linked in/images/Search.png" alt=""></label>
+            <input type="search" placeholder="Search" id="search">
+        </form>
+      </div>
+      <!-- link list -->
+      <ul>
+        <li class="home">
+          <a class="f-column" href="">
+            <div class="icon-height">
+              <img src="images/home_FILL0_wght400_GRAD0_opsz48.png" alt="Home">
+            </div>
+            Home
+          </a>
+        </li>
+        <li class="home">
+          <a class="f-column" href="">
+            <div class="icon-height">
+              <img src="images/supervisor_account_FILL0_wght400_GRAD0_opsz48.png" alt="Network Icon">
+            </div>
+            Network
+          </a>
+        </li>
+        <li class="home">
+          <a class="f-column" href="">
+            <div class="icon-height">
+              <img src="images/work_FILL0_wght400_GRAD0_opsz48.png" alt="Vacancy Logo">
+            </div>
+            Jobs
+          </a>
+        </li>
+        <li class="home">
+          <a class="f-column" href="">
+            <div class="icon-height">
+              <img src="images/sms_FILL0_wght400_GRAD0_opsz48.png" alt="Message Logo">
+            </div>
+            Message
+          </a>
+        </li>
+        <li class="home">
+          <a class="f-column" href="">
+            <div class="icon-height">
+              <img src="images/notifications_FILL0_wght400_GRAD0_opsz48.png" alt="Notification Logo">
+            </div>
+            Notification
+          </a>
+        </li>
+      </ul>
+      <a class="f-column home" href="">
+        <div class="icon-height">
+          <img class="profile-pic-rounded" src="images/COLOR_POP.jpg" alt="My Logo">
+        </div>
+        SUDARSHAN GOPALAN
+      </a>
+    </nav>
+  </header>
+
+  <!-- Main content, all profile boxes are here -->
+  <main>
+    <!-- First layer: Profile img, background and description -->
+    <section id="profile-layer">
+      <!-- profile images -->
+      <article id="profile-n-bckg-img">
+        <div id="profile-img">
+          <a href="">
+            <img src="images/COLOR_POP.jpg" alt="Profile img" class="profile-pic-rounded">
+          </a>
+        </div>
+      </article>
+      <!-- profile description -->
+      <article id="description-box">
+        <h1>M.G.Sudarshan</h1>
+        <h2>Webdeveloper and Designer</h2>
+        <span>We create website because we are developers</span>
+        <div class="button-box">
+          <div><button id="blue-btn">Open to</button></div>
+          <div><button>add profile section</button></div>
+          <div><button>Mail</button></div>
+        </div>
+      </article>
+    </section>
+    <!-- second layer: jobs and academic experiences -->
+    <section id="skills-layer">
+      <!-- job experiences -->
+      <article id="exp-article" class="separator">
+        <h3>Hobbies</h3>
+        <div class="flex-article">
+          <div class="article-img"><img src="./images/37.png" alt="Unknown logo"></div>
+          <div class="article-text separator">
+            <h4>Fan of Formula 1</h4>
+            <h5>Biggest fan of Redbull Racing</h5>
+            <span>Favroute driver Sergio Checo Perez</span>
+            <span>RedBull Racing</span>
+            <p>Known as Minister of Defence</p>
+          </div>
+        </div>
+       <div class="flex-article">
+          <div class="article-img"><img src="./images/download.png" alt="Unknown logo"></div>
+          <div class="article-text">
+            <h4>Full Stack Development</h4>
+            <h5>Persuing From Dice Academy</h5>
+            <span>Aug-2022 to june 2023</span>
+            <span>Learning from base based on HTML, CSS, JS, UI/UX, </span>
+            <p>created portfolio and still working to make it perfect</p>
+          </div>
+        </div> 
+      </article>
+      <!-- academic experiences -->
+      <article id="academic-article">
+        <h3>Completed Bachelor of Computer Application</h3>
+        <div class="flex-article">
+          <div class="article-img"><img src="./images/B.C.A.png" alt="Degree image"></div>
+          <div class="article-text">
+            <h4>Completed in the year of 2019</h4>
+            <h5>Specialization in HTML and CSS</h5>
+            <span>2016-2019</span>
+          </div>
+        </div>
+        <div class="flex-article">
+          <div class="article-img"><img src="./assets/lets-code-img.jfif" alt=""></div>
+          <div class="article-text">
+            <h4>Dice Academy</h4>
+            <h5>HTML ans CSS</h5>
+            <span>2022 - 2023</span>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
