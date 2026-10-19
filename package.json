@@ -1,0 +1,14 @@
+{
+  "name": "sudarshan-unreal-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive C++ / Unreal Engine portfolio for M G Sudarshan",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "illustrations": "node scripts/generate-illustrations.mjs",
+    "check": "node scripts/check.mjs && node scripts/test-navigation.mjs && node scripts/test-racing.mjs",
+    "test": "node scripts/test-navigation.mjs && node scripts/test-racing.mjs"
+  }
+}
