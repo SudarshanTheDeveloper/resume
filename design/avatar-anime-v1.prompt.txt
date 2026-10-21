@@ -1,0 +1,10 @@
+Use case: stylized-concept.
+Asset type: production 2D anime walk-cycle sprite atlas for a personal portfolio game. The attached portrait is the identity/appearance reference only.
+Primary request: Turn this young adult Indian man into a beautifully hand-drawn 2D anime protagonist. Preserve warm medium-brown skin, thick swept dark hair, black rectangular glasses, white U-shaped forehead marking with a fine yellow centre, subtle moustache/chin stubble, orange plaid button-up shirt with rolled sleeves. Complete outfit: charcoal trousers and cream sneakers. Friendly confident expression, expressive brown anime eyes, crisp dark ink contours, elegant sharp hair locks, clean two-tone cel shading. Clearly illustrated 2D anime, not a 3D render, not a plastic figurine, not photoreal.
+Composition: A SINGLE SQUARE transparent sprite atlas, exactly FOUR equal columns by THREE equal rows, twelve isolated full-body sprites, no visible grid or labels. Every sprite occupies exactly one equal cell, centered horizontally in its cell, feet on a consistent baseline 92% down each cell, head around 8% down, identical character scale throughout. Generous transparent margins prevent overlap.
+ROW 1: front view walk cycle, four frames in chronological order: right foot forward, passing neutral upright pose, left foot forward, second passing neutral pose.
+ROW 2: left-facing side/profile view walk cycle, same four phases in same order. Face looks toward the LEFT edge of image in every row-2 frame.
+ROW 3: back view walk cycle, same four phases. Show back of hair and shirt, no face or glasses drawn on back of head.
+Arms swing naturally opposite the legs. Subtle gait, not giant lunges. Keep consistent head height and body width so animation plays smoothly. Full body including hair tips and both shoe soles in every cell. All twelve figures must look like the SAME character in exactly the same clothing and line style.
+Backdrop: genuinely transparent alpha, no ground planes, no cast shadows, no white rectangles, no scenery.
+Text: NONE. No watermark, no captions, no border. Do not draw the original photo.

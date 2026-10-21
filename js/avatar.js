@@ -1,96 +1,76 @@
 import * as THREE from '../assets/vendor/three.module.min.js';
 
-// An articulated, procedural interpretation of the approved portrait and concept.
-// The generated concept is an appearance reference, not a scan or a mesh asset.
+// Aligned hand-drawn frames on a camera-facing sprite, without a character mesh.
+const ATLAS_URL = new URL('../assets/media/avatar-anime-v1.png', import.meta.url).href;
+// Boundaries follow the atlas's transparent gaps, not exact geometric thirds.
+const ROW_EDGES = [0, .335, .657, 1];
+
 export function createAvatar() {
-  const root = new THREE.Group(); root.name = 'Sudarshan — stylized avatar';
-  const body = new THREE.Group(); root.add(body);
-  const material = (color, roughness = .75) => new THREE.MeshStandardMaterial({ color, roughness, metalness: .05 });
-  const plaidCanvas=document.createElement('canvas');plaidCanvas.width=plaidCanvas.height=256;
-  const plaid=plaidCanvas.getContext('2d');plaid.fillStyle='#b86532';plaid.fillRect(0,0,256,256);
-  for(let i=0;i<256;i+=64){plaid.fillStyle='#263246';plaid.fillRect(i+14,0,13,256);plaid.fillRect(0,i+14,256,13);plaid.fillStyle='#ece1c9';plaid.fillRect(i+10,0,3,256);plaid.fillRect(i+28,0,3,256);plaid.fillRect(0,i+10,256,3);plaid.fillRect(0,i+28,256,3);plaid.fillStyle='#e7b28b';plaid.fillRect(i+47,0,2,256);plaid.fillRect(0,i+47,256,2);}
-  const plaidTexture=new THREE.CanvasTexture(plaidCanvas);plaidTexture.colorSpace=THREE.SRGBColorSpace;plaidTexture.wrapS=plaidTexture.wrapT=THREE.RepeatWrapping;
-  const skin = material(0xb77b54), hair = material(0x1a1718), shirt = new THREE.MeshStandardMaterial({map:plaidTexture,roughness:.9}), shirtDark = material(0x865035);
-  const pants = material(0x35383e), shoes = material(0xe0e4d8), sole = material(0x7f8983), eyeWhite = material(0xf7eee2), dark = material(0x171b20);
-  function mesh(geometry, mat, parent, position = [0,0,0], scale = [1,1,1]) {
-    const object = new THREE.Mesh(geometry, mat); object.position.set(...position); object.scale.set(...scale); parent.add(object); return object;
+  const root=new THREE.Group(),body=new THREE.Group();root.name='Sudarshan — 2D anime guide';root.add(body);root.userData.style='anime-2d';
+  const textures=[],frames=[],previews=new Map();
+  let loaded=false,currentRow=0,currentFrame=1,facingRight=false;
+  // A small illustrated fallback keeps the lab usable if the asset cannot load.
+  const placeholder=document.createElement('canvas');placeholder.width=256;placeholder.height=384;
+  const ctx=placeholder.getContext('2d');ctx.strokeStyle='#182a27';ctx.lineWidth=6;ctx.lineJoin='round';
+  ctx.fillStyle='#eea760';ctx.beginPath();ctx.roundRect(75,133,106,135,20);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#d59a70';ctx.beginPath();ctx.ellipse(128,91,48,59,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#20272a';ctx.beginPath();ctx.moveTo(76,78);ctx.lineTo(86,32);ctx.lineTo(113,17);ctx.lineTo(152,29);ctx.lineTo(181,58);ctx.lineTo(169,82);ctx.lineTo(143,62);ctx.lineTo(109,71);ctx.closePath();ctx.fill();
+  for(const x of [94,137])ctx.strokeRect(x,86,30,23);ctx.beginPath();ctx.moveTo(124,96);ctx.lineTo(137,96);ctx.stroke();
+  ctx.fillStyle='#343f43';ctx.fillRect(86,260,33,94);ctx.fillRect(137,260,33,94);ctx.fillStyle='#f2ecd4';ctx.fillRect(79,350,44,26);ctx.fillRect(133,350,44,26);
+  const fallback=new THREE.CanvasTexture(placeholder);fallback.colorSpace=THREE.SRGBColorSpace;textures.push(fallback);
+  const material=new THREE.SpriteMaterial({map:fallback,transparent:true,alphaTest:.05,depthWrite:false,toneMapped:false});
+  const sprite=new THREE.Sprite(material);sprite.name='Animated anime illustration';sprite.center.set(.5,8/384);sprite.scale.set(2,3,1);body.add(sprite);
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(.38,32),new THREE.MeshBasicMaterial({color:0x041710,transparent:true,opacity:.24,depthWrite:false}));
+  shadow.rotation.x=-Math.PI/2;shadow.position.y=.103;shadow.userData.noCastShadow=true;root.add(shadow);
+
+  const image=new Image();image.decoding='async';
+  const ready=new Promise(resolve=>{
+    image.onload=()=>{
+      const source=document.createElement('canvas');source.width=image.width;source.height=image.height;
+      const sourceContext=source.getContext('2d',{willReadFrequently:true});sourceContext.drawImage(image,0,0);
+      for(let row=0;row<3;row++){
+        frames[row]=[];
+        for(let col=0;col<4;col++){
+          const x0=Math.round(col*image.width/4),x1=Math.round((col+1)*image.width/4),y0=Math.round(ROW_EDGES[row]*image.height),y1=Math.round(ROW_EDGES[row+1]*image.height);
+          const pixels=sourceContext.getImageData(x0,y0,x1-x0,y1-y0),w=pixels.width,h=pixels.height;
+          let left=w,right=0,top=h,bottom=0;
+          for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(pixels.data[(y*w+x)*4+3]>32){left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
+          const canvas=document.createElement('canvas');canvas.width=256;canvas.height=384;
+          if(right>left&&bottom>top){const sw=right-left+1,sh=bottom-top+1,scale=Math.min(350/sh,242/sw),dw=sw*scale,dh=sh*scale;canvas.getContext('2d').drawImage(image,x0+left,y0+top,sw,sh,(256-dw)/2,376-dh,dw,dh);}
+          const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=2;textures.push(texture);frames[row][col]=texture;
+        }
+      }
+      loaded=true;setFrame(currentRow,currentFrame,facingRight);
+      for(const [canvas,portrait]of previews)paintPreview(canvas,portrait);
+      resolve(true);
+    };
+    image.onerror=()=>{root.userData.assetError=true;resolve(false);};
+  });
+  image.src=ATLAS_URL;
+  function setFrame(row,frame,flip){
+    currentRow=row;currentFrame=frame;facingRight=flip;
+    const texture=loaded?frames[row][frame]:fallback;
+    texture.repeat.x=flip?-1:1;texture.offset.x=flip?1:0;material.map=texture;
+    root.userData.frame=['front','profile','back'][row]+'-'+frame+(flip?'-right':'');
   }
-  const sphere = new THREE.SphereGeometry(1, 16, 12);
-  const capsule = (radius, length) => new THREE.CapsuleGeometry(radius, length, 4, 10);
-  const torso = mesh(new THREE.LatheGeometry([new THREE.Vector2(.205,-.27),new THREE.Vector2(.23,-.22),new THREE.Vector2(.25,.18),new THREE.Vector2(.225,.29),new THREE.Vector2(.11,.34)],24), shirt, body, [0,1.21,0], [1,1,.7]);
-  torso.rotation.z = -.025;
-  mesh(new THREE.BoxGeometry(.4,.16,.27), shirtDark, body,[0,.91,0]);
-  mesh(capsule(.09,.08), skin, body,[0,1.6,0]);
-  const head = new THREE.Group(); head.position.set(0,1.81,.025);head.scale.setScalar(.84);body.add(head);
-  mesh(sphere,skin,head,[0,0,0],[.235,.28,.225]);
-  mesh(sphere,skin,head,[-.232,-.005,0],[.044,.07,.042]); mesh(sphere,skin,head,[.232,-.005,0],[.044,.07,.042]);
-  mesh(sphere,skin,head,[0,-.025,.215],[.055,.07,.07]);
-  // Hair cap and a restrained, deterministic set of wavy tufts.
-  const cap = mesh(new THREE.SphereGeometry(1,16,10,0,Math.PI*2,0,Math.PI*.58),hair,head,[0,.08,-.025],[.247,.235,.236]);
-  for(let i=0;i<13;i++) {
-    const angle=i*2.39996, radius=.08+(i%3)*.035;
-    mesh(sphere,hair,head,[Math.cos(angle)*radius,.26+(i%3)*.012,Math.sin(angle)*radius+.015],[.09,.065,.085]);
+  function paintPreview(canvas,portrait=false){
+    previews.set(canvas,portrait);const context=canvas.getContext('2d');context.clearRect(0,0,canvas.width,canvas.height);
+    const source=loaded?frames[0][1].image:placeholder;
+    if(portrait)context.drawImage(source,54,18,148,150,0,0,canvas.width,canvas.height);
+    else{const scale=Math.min(canvas.width/256,canvas.height/384);context.drawImage(source,(canvas.width-256*scale)/2,(canvas.height-384*scale)/2,256*scale,384*scale);}
   }
-  // Short beard follows the lower jaw; eyes and eyebrows face local +Z.
-  mesh(new THREE.SphereGeometry(1,16,10,0,Math.PI*2,Math.PI*.6,Math.PI*.37),hair,head,[0,0,.008],[.229,.284,.223]);
-  for (const side of [-1,1]) {
-    mesh(sphere,eyeWhite,head,[side*.093,.025,.202],[.038,.024,.022]);
-    mesh(sphere,dark,head,[side*.093,.025,.222],[.017,.02,.009]);
-    const brow=mesh(capsule(.012,.064),hair,head,[side*.092,.081,.209]); brow.rotation.z=Math.PI/2+side*.08;
-    const moustache=mesh(capsule(.014,.064),hair,head,[side*.038,-.093,.221]); moustache.rotation.z=Math.PI/2-side*.12;
-  }
-  mesh(sphere,skin,head,[0,-.11,.216],[.043,.015,.018]);
-  // Thin rectangular frames and the forehead marking match the supplied portrait.
-  for(const side of [-1,1]){
-    const frameShape=new THREE.Shape();frameShape.moveTo(-.087,-.054);frameShape.lineTo(.087,-.054);frameShape.lineTo(.087,.054);frameShape.lineTo(-.087,.054);frameShape.closePath();
-    const lens=new THREE.Path();lens.moveTo(-.073,-.041);lens.lineTo(-.073,.041);lens.lineTo(.073,.041);lens.lineTo(.073,-.041);lens.closePath();frameShape.holes.push(lens);
-    mesh(new THREE.ExtrudeGeometry(frameShape,{depth:.014,bevelEnabled:true,bevelSize:.006,bevelThickness:.004,bevelSegments:2,steps:1}),dark,head,[side*.098,.027,.226]);
-    mesh(new THREE.BoxGeometry(.012,.014,.19),dark,head,[side*.185,.052,.14]);
-  }
-  mesh(new THREE.BoxGeometry(.037,.012,.015),dark,head,[0,.044,.235]);
-  const markPoints=[[-.057,.21,.163],[-.048,.11,.222],[-.028,.095,.231],[.028,.095,.231],[.048,.11,.222],[.057,.21,.163]].map(point=>new THREE.Vector3(...point));
-  mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(markPoints),24,.007,5,false),material(0xf7f0df),head);
-  const centerMark=mesh(capsule(.004,.087),material(0xe4bd5c),head,[0,.157,.216]);centerMark.rotation.x=-.4;
-  // Collar, placket, buttons, and rolled sleeves finish the plaid shirt.
-  for (const side of [-1,1]) {
-    const collar=mesh(new THREE.BoxGeometry(.1,.12,.027),shirtDark,body,[side*.075,1.48,.16]); collar.rotation.z=side*.4;
-  }
-  mesh(new THREE.BoxGeometry(.014,.42,.012),shirtDark,body,[0,1.2,.171]);
-  for(let i=0;i<4;i++) mesh(sphere,shoes,body,[0,1.06+i*.105,.182],[.009,.009,.006]);
-  const limbs=[];
-  for(const side of [-1,1]) {
-    const hip=new THREE.Group();hip.position.set(side*.135,.89,0);body.add(hip);
-    mesh(capsule(.09,.28),pants,hip,[0,-.18,0]);
-    const knee=new THREE.Group();knee.position.y=-.4;hip.add(knee);
-    mesh(capsule(.077,.27),pants,knee,[0,-.16,0]);
-    mesh(capsule(.078,.14),shoes,knee,[0,-.35,.065],[1,.65,1.3]);
-    mesh(new THREE.BoxGeometry(.165,.035,.29),sole,knee,[0,-.4,.06]);
-    const shoulder=new THREE.Group();shoulder.position.set(side*.285,1.45,0);body.add(shoulder);
-    shoulder.rotation.z=side*.08;
-    mesh(capsule(.079,.19),shirt,shoulder,[0,-.14,0]);
-    mesh(new THREE.CylinderGeometry(.084,.084,.06,12),shirt,shoulder,[0,-.265,0]);
-    const elbow=new THREE.Group();elbow.position.y=-.29;shoulder.add(elbow);
-    mesh(capsule(.058,.17),skin,elbow,[0,-.115,0]);
-    mesh(sphere,skin,elbow,[0,-.255,.012],[.065,.075,.055]);
-    limbs.push({side,hip,knee,shoulder,elbow});
-  }
-  root.scale.setScalar(1.08);
-  function pose(phase, amount = 0, wave = 0, time = phase) {
-    body.position.y = amount * (.055 + Math.abs(Math.sin(phase*2))*.055);
-    body.rotation.x = amount * .12;
-    body.rotation.z = Math.sin(phase)*amount*.035;
-    for(const limb of limbs) {
-      const gait=Math.sin(phase+(limb.side===1?Math.PI:0));
-      limb.hip.rotation.x=gait*amount*.72;
-      limb.knee.rotation.x=Math.max(0,-gait)*amount*1.05+.04;
-      limb.shoulder.rotation.x=-gait*amount*.62;
-      limb.elbow.rotation.x=-.14-amount*.8;
-    }
-    const right=limbs[1];
-    right.shoulder.rotation.z=.08+wave*1.65;
-    right.elbow.rotation.z=wave*(.1+Math.sin(time*2.6)*.25);
-    head.rotation.y=Math.sin(phase*.15)*amount*.1;
+  function pose(phase,amount=0,wave=0,time=phase,viewAngle=.45){
+    const relative=Math.atan2(Math.sin(root.rotation.y-viewAngle),Math.cos(root.rotation.y-viewAngle));
+    let row=currentRow;
+    const facing=Math.cos(relative),threshold=currentRow===1?.64:.45;
+    if(facing>threshold)row=0;else if(facing<-threshold)row=2;else if(Math.abs(facing)<.55)row=1;
+    if(wave>.1)row=0;
+    const moving=amount>.1,frame=moving?Math.floor(phase/(Math.PI*2)*4)%4:1;
+    setFrame(row,frame,row===1&&Math.sin(relative)>0);
+    body.position.y=.082+(moving?Math.abs(Math.sin(phase*2))*.025:Math.sin(time*1.8)*.005);
+    material.rotation=moving?Math.sin(phase)*amount*.012:0;
+    const height=Math.max(0,root.position.y+.082);shadow.position.y=.103-height;shadow.material.opacity=.24/(1+height*1.6);shadow.scale.setScalar(1/(1+height*.2));shadow.castShadow=false;
   }
   pose(0,0);
-  return { root, pose, head, body };
+  return {root,body,pose,paintPreview,ready,get loaded(){return loaded;},dispose(){for(const texture of textures)texture.dispose();material.dispose();shadow.geometry.dispose();shadow.material.dispose();}};
 }

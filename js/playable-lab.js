@@ -25,7 +25,9 @@ export function createPlayableLab({onProjectOpen,onActiveChange}) {
     renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
     renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-    lab=createLabWorld(renderer);avatar=createAvatar();avatar.root.traverse(object=>{if(object.isMesh)object.castShadow=true;});lab.scene.add(avatar.root);
+    lab=createLabWorld(renderer);avatar=createAvatar();lab.scene.add(avatar.root);
+    avatar.paintPreview(document.querySelector('#game-guide-portrait'),true);avatar.paintPreview(document.querySelector('#game-guide-preview'));
+    avatar.ready.then(loaded=>{canvas.dataset.avatarLoaded=String(loaded);requestFrame();});
     camera=new THREE.PerspectiveCamera(42,1,.1,180);camera.position.set(25,23,30);camera.lookAt(0,0,1);
     dialog.dataset.renderer='webgl';document.querySelector('#game-loading').textContent='The lab is ready. Come on in.';
   }catch(error){
@@ -39,10 +41,11 @@ export function createPlayableLab({onProjectOpen,onActiveChange}) {
   function clearMovement(){keys.clear();stickX=stickY=0;path=[];lab?.destination&&(lab.destination.visible=false);document.querySelector('#game-joystick-knob').style.transform='';}
   function setPanel(name){
     panel=name;clearMovement();
-    for(const [id,value]of [['game-map','map'],['game-help','help'],['game-paused','pause']])document.querySelector(`#${id}`).hidden=name!==value;
+    for(const [id,value]of [['game-map','map'],['game-help','help'],['game-paused','pause'],['game-guide','guide']])document.querySelector(`#${id}`).hidden=name!==value;
     document.querySelector('#game-map-toggle').setAttribute('aria-expanded',String(name==='map'));
     document.querySelector('#game-help-toggle').setAttribute('aria-expanded',String(name==='help'));
-    if(name){const node=document.querySelector(name==='map'?'#game-map':name==='help'?'#game-help':'#game-paused');(node.querySelector('button')||node).focus();}
+    document.querySelector('#game-guide-toggle').setAttribute('aria-expanded',String(name==='guide'));
+    if(name){const node=document.querySelector(name==='map'?'#game-map':name==='help'?'#game-help':name==='guide'?'#game-guide':'#game-paused');(node.querySelector('button')||node).focus();}
     else if(started)canvas.focus({preventScroll:true});
     else document.querySelector('#game-start').focus({preventScroll:true});
     requestFrame();
@@ -142,7 +145,8 @@ export function createPlayableLab({onProjectOpen,onActiveChange}) {
     runAmount=motionReduced()?targetRun:THREE.MathUtils.damp(runAmount,targetRun,12,delta);
     if(moving)phase+=delta*(speed>4?12:8);
     avatar.root.position.set(player.x,player.y-.082,player.z);avatar.root.rotation.y=player.angle;
-    avatar.pose(phase,motionReduced()?0:runAmount,!started?.65:0,motionReduced()?0:time);
+    avatar.pose(phase,motionReduced()?0:runAmount,!started?.65:0,motionReduced()?0:time,started?orbit:Math.atan2(25,30));
+    canvas.dataset.avatar='anime-2d';canvas.dataset.avatarFrame=avatar.root.userData.frame;
     if(started){desiredCamera.set(player.x+Math.sin(orbit)*distance,6.4+player.y*.35,player.z+Math.cos(orbit)*distance);lookAt.set(player.x,.85+player.y*.3,player.z);}
     else{desiredCamera.set(25,23,30);lookAt.set(0,0,1);}
     camera.position.lerp(desiredCamera,motionReduced()?1:1-Math.exp(-delta*5));camera.lookAt(lookAt);
@@ -175,6 +179,7 @@ export function createPlayableLab({onProjectOpen,onActiveChange}) {
   document.querySelectorAll('[data-game-exit]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault();exit();}));
   document.querySelector('#game-map-toggle').addEventListener('click',()=>setPanel(panel==='map'?null:'map'));
   document.querySelector('#game-help-toggle').addEventListener('click',()=>setPanel(panel==='help'?null:'help'));
+  document.querySelector('#game-guide-toggle').addEventListener('click',()=>setPanel(panel==='guide'?null:'guide'));
   document.querySelectorAll('[data-close-game-panel]').forEach(button=>button.addEventListener('click',()=>setPanel(null)));
   document.querySelectorAll('[data-travel]').forEach(button=>button.addEventListener('click',()=>travel(button.dataset.travel)));
   document.querySelector('#game-pause').addEventListener('click',()=>setPanel('pause'));
@@ -193,7 +198,7 @@ export function createPlayableLab({onProjectOpen,onActiveChange}) {
     const key=event.key.toLowerCase();
     if(key==='m'&&!event.repeat){event.preventDefault();setPanel(panel==='map'?null:'map');return;}
     if(key==='p'&&!event.repeat&&started){event.preventDefault();setPanel(panel?null:'pause');return;}
-    if(event.target.closest('#game-map,#game-help,#game-paused'))return;
+    if(event.target.closest('#game-map,#game-help,#game-paused,#game-guide'))return;
     if((key==='e'||key==='enter')&&event.target===canvas&&!event.repeat){event.preventDefault();interact();return;}
     if(!started||panel||event.target!==canvas)return;
     if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','shift',' '].includes(key)){event.preventDefault();keys.add(key);if(key===' '&&!event.repeat)jump();requestFrame();}
@@ -231,6 +236,6 @@ export function createPlayableLab({onProjectOpen,onActiveChange}) {
     open,exit,enterRace,
     setProjectOpen(value){suspended=value;clearMovement();if(value)stop();else if(dialog.open){canvas.focus({preventScroll:true});requestFrame();}},
     get isOpen(){return dialog.open;},
-    dispose(){racer?.dispose();stop();clearTimeout(toastTimer);window.removeEventListener('resize',resize);if(!lab)return;const geometries=new Set(),materials=new Set(),textures=new Set(lab.textures);lab.scene.traverse(object=>{if(object.geometry)geometries.add(object.geometry);if(object.material){for(const material of Array.isArray(object.material)?object.material:[object.material]){materials.add(material);if(material.map)textures.add(material.map);}}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());lab.environment.dispose();renderer.dispose();}
+    dispose(){racer?.dispose();avatar?.dispose();stop();clearTimeout(toastTimer);window.removeEventListener('resize',resize);if(!lab)return;const geometries=new Set(),materials=new Set(),textures=new Set(lab.textures);lab.scene.traverse(object=>{if(object.geometry)geometries.add(object.geometry);if(object.material){for(const material of Array.isArray(object.material)?object.material:[object.material]){materials.add(material);if(material.map)textures.add(material.map);}}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());lab.environment.dispose();renderer.dispose();}
   };
 }

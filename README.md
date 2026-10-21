@@ -1,6 +1,6 @@
 # M G Sudarshan — a playable Unreal Engine C++ portfolio
 
-A third-person browser portfolio with a personalized procedural avatar and four project exhibits, alongside a complete recruiter-friendly portfolio. The interactive website is implemented with Three.js; the professional work it describes is based on the supplied C++ / Unreal Engine resume.
+A third-person browser portfolio with a personalized anime avatar and four project exhibits, alongside a complete recruiter-friendly portfolio. The interactive website is implemented with Three.js; the professional work it describes is based on the supplied C++ / Unreal Engine resume.
 
 ## Run locally
 
@@ -56,9 +56,11 @@ Racing uses the lab's existing WebGL renderer and only creates its scene when fi
 
 ## Personal avatar
 
-`js/avatar.js` builds an articulated 3D character from geometry, with procedural walk/run poses, jumping through the movement controller, and an introductory wave. Its appearance follows the supplied portrait and approved concept: dark hair, black glasses, forehead marking, orange plaid shirt, charcoal trousers, and light sneakers.
+`js/avatar.js` renders a hand-drawn **2D anime character** inside the 3D campus. The older procedural character mesh has been replaced. The avatar uses twelve illustrated frames: front, left profile (mirrored for the right side), and rear views, with four walking phases per view. The camera-facing sprite chooses its drawing from the avatar's direction relative to the camera. Foot alignment, a grounded contact shadow, and the existing jump controller keep it anchored in the world.
 
-This is a stylized procedural interpretation, not a photorealistic scan or a conversion of the concept PNG into a detailed character mesh. The PNG concept and its generation prompt are preserved in `design/`. The `createAvatar()` interface can be replaced with an artist-produced rigged character later without rebuilding the world or navigation.
+The artwork follows the supplied portrait: swept dark hair, black glasses, forehead marking, subtle facial hair, orange plaid shirt, charcoal trousers, and cream sneakers. A **Your guide** button opens a full-body character preview, and its portrait appears in the exploration controls. Reduced-motion mode freezes the walk-frame animation; movement and jumping remain available.
+
+The transparent atlas is bundled at `assets/media/avatar-anime-v1.png`; its final built-in image-generation prompt is preserved at `design/avatar-anime-v1.prompt.txt`. The original 3D concept image remains in `design/` as an earlier design reference. Atlas cells are aligned into small runtime textures without modifying the source PNG. An illustrated placeholder keeps the game usable if the image cannot load.
 
 ## Source map
 
@@ -72,7 +74,7 @@ This is a stylized procedural interpretation, not a photorealistic scan or a con
 - `js/race-world.js`: circuit environment and open-wheel car geometry.
 - `js/racing-game.js`: race lifecycle, opponents, chase camera, HUD, input and saved best lap.
 - `css/racing.css`: paddock, race interface, touch controls and portfolio racing section.
-- `js/avatar.js`: personalized procedural character and joint animation.
+- `js/avatar.js`: illustrated anime sprites, directional walk cycles, preview rendering and contact shadow.
 - `js/journey-worlds.js`: the four conceptual exhibit models.
 - `js/portfolio.js`: portfolio mode switching, project filtering, dialogs, media binding, and contact actions.
 - `js/projects.js`: case study content and project media configuration.
@@ -122,4 +124,4 @@ Earlier web experiments remain in the repository, outside the new portfolio's na
 
 - Three.js 0.180.0: `assets/vendor/THREE-LICENSE.txt`.
 - Manrope and Space Grotesk: SIL Open Font License files in `assets/fonts/`.
-- The campus, avatar geometry, and technical illustrations are authored in this project.
+- The campus, car geometry, and technical illustrations are authored in this project. The anime sprite artwork was made with built-in image generation using the supplied portrait; its final prompt is preserved in `design/`.
